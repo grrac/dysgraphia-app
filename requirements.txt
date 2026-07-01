@@ -1,0 +1,21 @@
+# CPU-only PyTorch wheels — keeps the build small enough for the free tier.
+# This line MUST stay at the top.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+streamlit>=1.6.1
+
+# Python 3.13 compatible, CPU-only. torch 2.6.0 <-> torchvision 0.21.0 is a
+# matched pair. (torch 2.2.2 has no 3.13 wheel, which caused the install error.)
+torch==2.6.0+cpu
+torchvision==0.21.0+cpu
+
+# IMPORTANT: pin this to the EXACT version your Colab used to create the .pkl
+# files. In Colab run:  import sklearn; print(sklearn.__version__)
+# then replace the version below with what it prints. A mismatch can make
+# joblib.load() fail or warn on Streamlit Cloud.
+scikit-learn==1.6.1
+
+
+opencv-python-headless
+pillow
+joblib

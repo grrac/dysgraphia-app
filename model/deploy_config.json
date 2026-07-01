@@ -1,0 +1,22 @@
+{
+  "model": "Combined-60 Image SVM (fc_1, ResNet-18)",
+  "backbone": "resnet18 IMAGENET1K_V1, children[:-1] -> flatten -> 512",
+  "input": {
+    "canvas_h": 300,
+    "canvas_w": 700,
+    "channels": 3,
+    "scaling": "divide_by_255_only__NO_imagenet_normalize"
+  },
+  "feature_dim": 512,
+  "class_names": [
+    "Low Risk",
+    "Moderate Risk",
+    "High Risk"
+  ],
+  "reported_cv": {
+    "config": "Image / SVM / k=5",
+    "test_acc_pct": 80.0,
+    "macro_f1_pct": 75.53,
+    "high_risk_recall_pct": 56.67
+  }
+}

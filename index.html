@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dysgraphia Risk Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     DESIGN TOKENS
+     ============================================================ */
+  :root {
+    --bg:          #eaeef3;
+    --surface:     #ffffff;
+    --surface-2:   #f6f8fa;
+    --ink:         #0f1b2a;
+    --ink-2:       #33465b;
+    --muted:       #6b7c8f;
+    --line:        #e3e9f0;
+
+    --teal:        #12a37f;
+    --teal-ink:    #0c7a5e;
+    --teal-tint:   #e7f5f0;
+
+    --low:  #1fa06b;  --low-tint:  #eef8f2;  --low-line:  #cfeadd;
+    --mod:  #e0912a;  --mod-tint:  #fdf5e8;  --mod-line:  #f3e2c2;
+    --high: #dd5150;  --high-tint: #fdeeee;  --high-line: #f4d3d3;
+
+    --radius:  16px;
+    --radius-sm: 10px;
+    --shadow:  0 1px 2px rgba(15,27,42,.04), 0 10px 30px rgba(15,27,42,.05);
+    --shadow-sm: 0 1px 2px rgba(15,27,42,.05);
+
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-body:    'Inter', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+    --maxw: 820px;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--ink-2);
+    background: var(--bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--teal-ink); text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { color: var(--teal); }
+
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  [hidden] { display: none !important; }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+  section.wrap { margin-bottom: 22px; }
+
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-header__inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand__mark { color: var(--teal); display: flex; }
+  .brand__name { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.02rem; }
+  .site-header .eyebrow { font-size: .68rem; letter-spacing: .18em; }
+
+  section { padding: 0 0; }
+  .stack > * + * { margin-top: 22px; }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero { text-align: center; padding: 56px 0 40px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: .74rem; letter-spacing: .08em;
+    color: var(--teal-ink); background: var(--teal-tint);
+    border: 1px solid var(--low-line);
+    padding: 6px 14px; border-radius: 999px;
+  }
+  .pill__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--ink);
+    font-size: clamp(2.1rem, 6vw, 3.3rem);
+    line-height: 1.06;
+    letter-spacing: -.02em;
+    margin: 22px 0 16px;
+  }
+  .hero h1 .accent { color: var(--teal); display: block; }
+  .hero p { max-width: 34rem; margin: 0 auto; color: var(--muted); font-size: 1.05rem; }
+
+  /* ============================================================
+     CARD (shared)
+     ============================================================ */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 30px;
+  }
+  .card__title { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.18rem; }
+  .card__hint  { color: var(--muted); font-size: .93rem; margin-top: 6px; }
+
+  /* ============================================================
+     UPLOAD  (states: idle / analyzing / result live in this card)
+     ============================================================ */
+  .dropzone {
+    display: block;
+    width: 100%;
+    margin-top: 22px;
+    border: 1.5px dashed #c3cfda;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    padding: 44px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease;
+  }
+  .dropzone:hover, .dropzone.is-drag {
+    border-color: var(--teal);
+    background: var(--teal-tint);
+  }
+  .dropzone__icon {
+    width: 58px; height: 58px; margin: 0 auto 18px;
+    display: grid; place-items: center;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; color: var(--muted);
+  }
+  .dropzone__main { color: var(--ink-2); font-weight: 500; }
+  .dropzone__formats {
+    font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em;
+    color: var(--muted); margin-top: 8px;
+  }
+
+  .note {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 18px; padding: 12px 14px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: .86rem; color: var(--muted);
+  }
+  .note svg { flex: none; margin-top: 1px; color: var(--muted); }
+  .note b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---- analyzing ---- */
+  .analyze { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: center; margin-top: 8px; }
+  .thumb {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 10px;
+    aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden;
+  }
+  .thumb img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+  .analyze__head { display: flex; align-items: center; gap: 10px; }
+  .analyze__title { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.15rem; }
+  .analyze__file { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); margin: 2px 0 18px; }
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .step { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .96rem; }
+  .step__badge {
+    width: 24px; height: 24px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    border: 2px solid var(--line); color: transparent; background: var(--surface);
+    font-size: .7rem;
+  }
+  .step.is-done { color: var(--ink-2); }
+  .step.is-done .step__badge { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .step.is-active { color: var(--ink-2); }
+  .step.is-active .step__badge { border-color: var(--teal); }
+  .spinner {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--low-line); border-top-color: var(--teal);
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- result ---- */
+  .verdict {
+    border-radius: var(--radius-sm);
+    padding: 22px 24px;
+    display: flex; gap: 16px; align-items: flex-start;
+    border: 1px solid transparent;
+  }
+  .verdict__icon { flex: none; margin-top: 2px; }
+  .verdict__label { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; }
+  .verdict__sub { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .06em; margin-top: 2px; }
+  .verdict__body { font-size: .95rem; margin-top: 10px; }
+  .verdict.low  { background: var(--low-tint);  border-color: var(--low-line);  color: var(--low); }
+  .verdict.mod  { background: var(--mod-tint);  border-color: var(--mod-line);  color: var(--mod); }
+  .verdict.high { background: var(--high-tint); border-color: var(--high-line); color: var(--high); }
+  .verdict__body, .verdict__sub { color: var(--ink-2); }
+
+  .result__grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 30px; margin-top: 26px; }
+  .result__file { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); margin-top: 10px; word-break: break-all; }
+
+  .confidence { margin-top: 14px; }
+  .confidence__row { display: flex; justify-content: space-between; align-items: baseline; }
+  .confidence__row .eyebrow { font-size: .66rem; }
+  .confidence__val { font-family: var(--font-mono); font-weight: 600; color: var(--teal-ink); font-size: .82rem; }
+  .bar { height: 7px; border-radius: 999px; background: var(--line); margin-top: 7px; overflow: hidden; }
+  .bar__fill { height: 100%; border-radius: 999px; background: var(--teal); transition: width .6s ease; }
+
+  .obs { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .obs li {
+    display: flex; gap: 12px; align-items: center;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    color: var(--ink-2); font-size: .94rem;
+  }
+  .obs li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex: none; }
+
+  .disclaimer {
+    margin-top: 24px; padding: 16px 18px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: .86rem; color: var(--muted);
+  }
+  .disclaimer b { color: var(--ink-2); font-weight: 600; }
+
+  .btn-reset {
+    margin-top: 22px; display: inline-flex; align-items: center; gap: 8px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-body); font-size: .9rem; color: var(--teal-ink);
+  }
+  .btn-reset:hover { color: var(--teal); }
+
+  /* ============================================================
+     MODEL PERFORMANCE  (delete this whole <section> to reclaim space)
+     ============================================================ */
+  .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .section-head svg { color: var(--teal); }
+  .section-head h2 { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.18rem; }
+
+  details.perf {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  details.perf summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 24px 28px;
+  }
+  details.perf summary .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  details.perf summary .section-head svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--teal);
+  }
+  details.perf summary h2 { margin: 0; }
+  details.perf summary .perf-toggle {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    transition: transform .2s ease;
+    color: var(--muted);
+  }
+  details.perf[open] summary .perf-toggle {
+    transform: rotate(180deg);
+  }
+  details.perf summary::-webkit-details-marker,
+  details.perf summary::marker {
+    display: none;
+  }
+  details.perf[open] summary {
+    border-bottom: 1px solid var(--line);
+  }
+  details.perf .section-head { margin-bottom: 0; }
+  details.perf .stats,
+  details.perf .about { padding: 24px 28px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+  .stat {
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--surface-2); padding: 16px 18px;
+  }
+  .stat__num { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 1.65rem; letter-spacing: -.01em; }
+  .stat__lab { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .stat__meter { height: 5px; border-radius: 999px; background: var(--line); margin-top: 12px; overflow: hidden; }
+  .stat__meter i { display: block; height: 100%; background: var(--teal); border-radius: 999px; }
+  .stat.warn .stat__num { color: var(--high); }
+  .stat.warn .stat__meter i { background: var(--high); }
+
+  .about {
+    margin-top: 20px; padding: 16px 18px;
+    background: var(--teal-tint); border: 1px solid var(--low-line);
+    border-radius: var(--radius-sm); font-size: .9rem; color: var(--ink-2);
+  }
+  .about b { color: var(--ink); font-weight: 600; }
+
+  /* ============================================================
+     SEVERITY GRADES
+     ============================================================ */
+  .grade { border-radius: var(--radius-sm); border: 1px solid var(--line); padding: 20px 22px; }
+  .grade + .grade { margin-top: 14px; }
+  .grade__head { display: flex; align-items: center; gap: 10px; }
+  .grade__dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .grade__name { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.02rem; }
+  .grade__desc { color: var(--ink-2); font-size: .92rem; margin: 8px 0 12px; }
+  .grade__action { display: inline-block; font-size: .84rem; font-weight: 500; padding: 7px 12px; border-radius: 8px; }
+
+  .grade.low  { background: var(--low-tint);  border-color: var(--low-line); }
+  .grade.low  .grade__dot { background: var(--low); }
+  .grade.low  .grade__action { background: #dff2e8; color: var(--low); }
+  .grade.mod  { background: var(--mod-tint);  border-color: var(--mod-line); }
+  .grade.mod  .grade__dot { background: var(--mod); }
+  .grade.mod  .grade__action { background: #f8ead0; color: #b9761c; }
+  .grade.high { background: var(--high-tint); border-color: var(--high-line); }
+  .grade.high .grade__dot { background: var(--high); }
+  .grade.high .grade__action { background: #f8dcdc; color: var(--high); }
+
+  /* ============================================================
+     HOW IT WORKS  (numbering is a real sequence -> justified)
+     ============================================================ */
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .how {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+    padding: 22px 20px;
+  }
+  .how__num { font-family: var(--font-mono); font-weight: 600; font-size: .78rem; color: var(--teal); letter-spacing: .1em; }
+  .how__title { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.02rem; margin: 12px 0 8px; }
+  .how__desc { color: var(--muted); font-size: .9rem; }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  .site-footer { border-top: 1px solid var(--line); margin-top: 20px; }
+  .site-footer__inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 22px 20px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .site-footer .eyebrow { color: var(--muted); }
+  .site-footer .eyebrow.accent { color: var(--teal-ink); }
+
+  /* spacing between the big stacked sections */
+  .sections { padding: 8px 0 40px; }
+  .sections > * + * { margin-top: 22px; }
+
+  /* ============================================================
+     RESPONSIVE — Tablet
+     ============================================================ */
+  @media (max-width: 1024px) {
+    :root { --maxw: 720px; }
+    .hero { padding: 46px 0 34px; }
+    .card { padding: 26px; }
+    .result__grid { grid-template-columns: 1fr 1.15fr; gap: 22px; }
+    .steps-grid { gap: 12px; }
+  }
+
+  /* ============================================================
+     RESPONSIVE — Mobile
+     ============================================================ */
+  @media (max-width: 768px) {
+    .site-header__inner { padding: 14px 18px; }
+    .site-header .eyebrow { display: none; }
+
+    .hero h1 .accent { display: inline; }   /* let it wrap naturally on small screens */
+
+    .card { padding: 20px; }
+    .dropzone { padding: 34px 16px; }
+
+    .analyze { grid-template-columns: 1fr; gap: 18px; }
+    .thumb { max-width: 220px; }
+
+    .result__grid { grid-template-columns: 1fr; gap: 22px; }
+
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .steps-grid { grid-template-columns: 1fr; }
+
+    .site-footer__inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3"/></svg>
+        </span>
+        <span class="brand__name">Handwriting Analysis</span>
+      </div>
+      <span class="eyebrow">Dysgraphia Detection</span>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill"><span class="pill__dot"></span> ML-Powered Screening</span>
+      <h1>Dysgraphia Risk <span class="accent">Assessment</span></h1>
+      <p>Upload a handwriting sample and the model grades dysgraphia risk in seconds as Low, Moderate, or High.</p>
+    </div>
+  </section>
+
+  <!-- UPLOAD / ANALYZING / RESULT -->
+  <section class="wrap">
+    <div class="card" id="panel">
+
+      <!-- STATE: idle -->
+      <div id="state-idle">
+        <h2 class="card__title">Upload handwriting sample</h2>
+        <p class="card__hint">Upload a clear photo or scan of natural handwriting. We clean and normalize the image before analysis.</p>
+
+        <label class="dropzone" id="dropzone" for="file" tabindex="0" role="button" aria-label="Upload an image">
+          <span class="dropzone__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+          </span>
+          <div class="dropzone__main">Drop image here or <a href="#" onclick="return false">browse</a></div>
+          <div class="dropzone__formats">JPG · PNG · WEBP · HEIC</div>
+          <input type="file" id="file" accept="image/*" hidden />
+        </label>
+
+      </div>
+
+      <!-- STATE: analyzing -->
+      <div id="state-analyzing" hidden>
+        <div class="analyze">
+          <div class="thumb"><img id="prev-analyze" alt="Uploaded sample preview" /></div>
+          <div>
+            <div class="analyze__head">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="analyze__title">Analyzing sample</span>
+            </div>
+            <div class="analyze__file" id="file-analyze">image.png</div>
+            <ul class="steps" id="steps">
+              <li class="step" data-step="0"><span class="step__badge">✓</span> Preprocessing handwriting image</li>
+              <li class="step" data-step="1"><span class="step__badge">✓</span> Normalizing and preparing sample</li>
+              <li class="step" data-step="2"><span class="step__badge">✓</span> Running through classification model</li>
+              <li class="step" data-step="3"><span class="step__badge">4</span> Generating assessment report</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATE: result -->
+      <div id="state-result" hidden>
+        <div class="verdict low" id="verdict">
+          <span class="verdict__icon" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.4 4.6-4.8"/></svg>
+          </span>
+          <div>
+            <div class="verdict__label" id="verdict-label">Low Risk</div>
+            <div class="verdict__sub" id="verdict-sub">No significant indicators detected</div>
+            <div class="verdict__body" id="verdict-body">Handwriting patterns fall within typical developmental ranges. No significant indicators of dysgraphia were identified in this sample.</div>
+          </div>
+        </div>
+
+        <div class="result__grid">
+          <div>
+            <span class="eyebrow">Analyzed sample</span>
+            <div class="thumb" style="margin-top:10px"><img id="prev-result" alt="Analyzed sample" /></div>
+            <div class="result__file" id="file-result">image.png</div>
+            <div class="confidence">
+              <div class="confidence__row">
+                <span class="eyebrow">Model confidence</span>
+                <span class="confidence__val" id="conf-val">91%</span>
+              </div>
+              <div class="bar"><div class="bar__fill" id="conf-bar" style="width:91%"></div></div>
+            </div>
+          </div>
+
+          <div>
+            <span class="eyebrow">Key observations</span>
+            <ul class="obs" id="obs" style="margin-top:12px">
+              <li>Overall handwriting legibility is high</li>
+              <li>Letter formation is consistent across the sample</li>
+              <li>Word spacing appears regular and controlled</li>
+              <li>No significant reversals or omissions detected</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="disclaimer">
+          <b>Disclaimer:</b> This tool is for preliminary screening only and does not constitute a clinical diagnosis. Consult a certified specialist for formal assessment.
+        </div>
+
+        <button class="btn-reset" id="reset">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Analyze another sample
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LOWER SECTIONS -->
+  <div class="wrap sections">
+
+      <!-- HOW IT WORKS -->
+    <section>
+      <div class="steps-grid">
+        <div class="how">
+          <div class="how__num">01</div>
+          <div class="how__title">Upload</div>
+          <p class="how__desc">A photo or scan of a natural handwriting sample.</p>
+        </div>
+        <div class="how">
+          <div class="how__num">02</div>
+          <div class="how__title">Classify</div>
+          <p class="how__desc">The sample is cleaned, normalized, and passed to the trained model.</p>
+        </div>
+        <div class="how">
+          <div class="how__num">03</div>
+          <div class="how__title">Review</div>
+          <p class="how__desc">Receive a risk classification with supporting observations.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEVERITY GRADES -->
+    <section class="card">
+      <h2 class="card__title">Severity grades</h2>
+      <p class="card__hint">How each classification level is defined and what action it suggests.</p>
+
+      <div style="margin-top:20px">
+        <div class="grade low">
+          <div class="grade__head"><span class="grade__dot"></span><span class="grade__name">Low Risk</span></div>
+          <p class="grade__desc">Handwriting is largely legible with minimal irregularities. Patterns fall within typical developmental ranges.</p>
+          <span class="grade__action">No immediate intervention required. Routine monitoring is sufficient.</span>
+        </div>
+
+        <div class="grade mod">
+          <div class="grade__head"><span class="grade__dot"></span><span class="grade__name">Moderate Risk</span></div>
+          <p class="grade__desc">Noticeable irregularities in letter formation, spacing, or legibility. Some patterns align with dysgraphia markers.</p>
+          <span class="grade__action">Professional screening is recommended. Early support strategies may be beneficial.</span>
+        </div>
+
+        <div class="grade high">
+          <div class="grade__head"><span class="grade__dot"></span><span class="grade__name">High Risk</span></div>
+          <p class="grade__desc">Multiple consistent markers of dysgraphia present. Significant impact on legibility and fluency observed.</p>
+          <span class="grade__action">Referral to an educational psychologist or occupational therapist is strongly advised.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODEL PERFORMANCE -->
+    <details class="perf" open>
+      <summary>
+        <div class="section-head">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <h2>Model performance</h2>
+        </div>
+        <svg class="perf-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat__num">80.0%</div>
+          <div class="stat__lab">Accuracy</div>
+          <div class="stat__meter"><i style="width:80%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">75.5%</div>
+          <div class="stat__lab">Macro F1</div>
+          <div class="stat__meter"><i style="width:75.5%"></i></div>
+        </div>
+        <div class="stat warn">
+          <div class="stat__num">56.7%</div>
+          <div class="stat__lab">High-Risk Recall</div>
+          <div class="stat__meter"><i style="width:56.7%"></i></div>
+        </div>
+      </div>
+
+      <div class="about">
+        <b>About the model:</b> Trained on handwriting from 60 respondents across three severity levels. Deep image features (ResNet-18) are classified by a support-vector model into Low, Moderate, or High risk. <b>High-Risk recall (56.7%) is the known limitation</b> — roughly half of severe cases are not flagged — so the tool is a first-pass screener, not a diagnostic.
+      </div>
+    </details>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span class="eyebrow">Preliminary Screening Tool</span>
+      <span class="eyebrow accent">Not a substitute for clinical diagnosis</span>
+    </div>
+  </footer>
+
+  <script>
+    /* ------------------------------------------------------------
+       Minimal front-end interaction.
+       NOTE: the result below is a MOCK for local design preview.
+       In the Streamlit build (Task 3), the real model output
+       (predicted class + confidence) replaces this block.
+    ------------------------------------------------------------ */
+    const panel   = document.getElementById('panel');
+    const dz       = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file');
+
+    const stIdle   = document.getElementById('state-idle');
+    const stAnalyz = document.getElementById('state-analyzing');
+    const stResult = document.getElementById('state-result');
+
+    const prevA = document.getElementById('prev-analyze');
+    const prevR = document.getElementById('prev-result');
+    const fileA = document.getElementById('file-analyze');
+    const fileR = document.getElementById('file-result');
+    const steps = [...document.querySelectorAll('#steps .step')];
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function setState(name) {
+      stIdle.hidden   = name !== 'idle';
+      stAnalyz.hidden = name !== 'analyzing';
+      stResult.hidden = name !== 'result';
+    }
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const url = URL.createObjectURL(file);
+      prevA.src = url; prevR.src = url;
+      fileA.textContent = file.name; fileR.textContent = file.name;
+
+      setState('analyzing');
+      steps.forEach(s => s.className = 'step');
+
+      const stepDelay = reduceMotion ? 0 : 550;
+      steps.forEach((s, i) => {
+        setTimeout(() => {
+          steps.forEach((el, j) => {
+            el.classList.toggle('is-done', j < i + 1);
+            el.classList.toggle('is-active', j === i + 1);
+          });
+          if (i === steps.length - 1) {
+            setTimeout(() => setState('result'), stepDelay);
+          }
+        }, stepDelay * (i + 1));
+      });
+    }
+
+    /* browse */
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+    /* keyboard activate on the label */
+    dz.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
+    /* drag & drop */
+    ['dragenter', 'dragover'].forEach(ev =>
+      dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('is-drag'); }));
+    ['dragleave', 'drop'].forEach(ev =>
+      dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('is-drag'); }));
+    dz.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+
+    /* reset */
+    document.getElementById('reset').addEventListener('click', () => {
+      fileInput.value = '';
+      setState('idle');
+    });
+  </script>
+</body>
+</html>
