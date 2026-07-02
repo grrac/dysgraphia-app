@@ -15,24 +15,24 @@ import numpy as np
 # Must match deploy_config.json -> input.canvas_h / canvas_w
 CANVAS_H, CANVAS_W = 300, 700
 
-
 def remove_ruling_lines(img):
     """Detect long near-horizontal lines (Hough) and inpaint them; keeps strokes."""
-    # 1) isolate candidate horizontal structure
+    if img.dtype != np.uint8:
+        img = img.astype(np.uint8)
+
     kernel_w = max(img.shape[1] // 4, 50)
     h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_w, 1))
     horiz    = cv2.morphologyEx(img, cv2.MORPH_OPEN, h_kernel, iterations=1)
 
-    # 2) Hough to confirm they are actual long straight lines
     mask = np.zeros_like(img)
     lines = cv2.HoughLinesP(horiz, 1, np.pi / 180, threshold=80,
                             minLineLength=img.shape[1] // 7, maxLineGap=20)
     if lines is not None:
-        for x1, y1, x2, y2 in lines[:, 0]:
-            if abs(y2 - y1) <= 3:                      # near-horizontal only
+        for line in lines.reshape(-1, 4):          # normalizes (N,1,4) / (N,4) / (1,N,4)
+            x1, y1, x2, y2 = map(int, line)        # numpy ints -> python ints for cv2.line
+            if abs(y2 - y1) <= 3:                  # near-horizontal only
                 cv2.line(mask, (x1, y1), (x2, y2), 255, 3)
 
-    # 3) inpaint so text crossing the line is reconstructed, not gouged
     cleaned = cv2.inpaint(img, mask, 3, cv2.INPAINT_TELEA)
     return cleaned
 
