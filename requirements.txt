@@ -6,8 +6,8 @@ streamlit>=1.39
 
 # Python 3.13 compatible, CPU-only. torch 2.6.0 <-> torchvision 0.21.0 is a
 # matched pair. (torch 2.2.2 has no 3.13 wheel, which caused the install error.)
-torch==2.6.0+cpu
-torchvision==0.21.0+cpu
+torch==2.6.0
+torchvision==0.21.0
 
 # IMPORTANT: pin this to the EXACT version your Colab used to create the .pkl
 # files. In Colab run:  import sklearn; print(sklearn.__version__)
