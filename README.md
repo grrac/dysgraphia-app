@@ -53,36 +53,23 @@ predictions as indicative only, not validated** — the reported accuracy figure
 dataset-format input.
 
 ## Project structure
+```text
 dysgraphia-app/
-
 ├── app.py                 # Streamlit app (UI + inference)
-
 ├── style.css              # single injected stylesheet
-
 ├── requirements.txt
-
 ├── runtime.txt            # pins Python 3.12 for Streamlit Cloud
-
 ├── index.html             # standalone design mockup (not used at runtime)
-
 ├── .streamlit/
-
 │   └── config.toml        # theme
-
 ├── src/
-
 │   ├── init.py
-
 │   └── preprocess.py      # ruling-line removal, resize/pad
-
 └── model/
-
 ├── svm.pkl
-
 ├── scaler.pkl
-
 └── deploy_config.json
-
+```
 ## Run locally
 
 Requires **Python 3.12**.
