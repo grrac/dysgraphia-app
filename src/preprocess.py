@@ -67,3 +67,22 @@ def preprocess_single(gray):
         gray = gray.astype(np.uint8)
     cleaned = remove_ruling_lines(gray)
     return resize_and_pad(cleaned)
+
+def normalize_photo(gray):
+    """
+    Convert an ordinary ink-on-paper photo (dark strokes, light paper) into the
+    dataset format: white strokes on a black background.
+
+    APPROXIMATE — use only for the 'Phone photo' branch. Never call this on
+    dataset-format samples (they are already white-on-black).
+    """
+    gray = cv2.medianBlur(gray, 3)                       # calm phone-camera noise
+    binary = cv2.adaptiveThreshold(                      # handles uneven lighting
+        gray, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV,                           # ink -> white, paper -> black
+        blockSize=35, C=15,                              # tune if too noisy / too faint
+    )
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+    binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel, iterations=1)  # drop speckles
+    return binary

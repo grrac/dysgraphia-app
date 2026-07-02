@@ -19,11 +19,12 @@ import torchvision.models as models
 import joblib
 from PIL import Image
 
-from src.preprocess import preprocess_single
+from src.preprocess import preprocess_single, normalize_photo
 
 st.set_page_config(page_title="Dysgraphia Risk Assessment",
                    page_icon="🖊️", layout="centered")
 
+DEBUG_PREVIEW = False  # DEBUG: shows preprocessing output. Set False / delete before deploying.
 # ------------------------------------------------------------------
 # Artifacts (loaded once, cached across reruns)
 # ------------------------------------------------------------------
@@ -163,8 +164,8 @@ HEADER_HERO = """
 </div>
 """
 
-LOWER_SECTIONS = f"""
-<section>
+HOW_IT_WORKS = """
+<section style="margin-bottom:22px">
   <div class="steps-grid">
     <div class="how"><div class="how__num">01</div><div class="how__title">Upload</div>
       <p class="how__desc">A photo or scan of a natural handwriting sample.</p></div>
@@ -174,7 +175,9 @@ LOWER_SECTIONS = f"""
       <p class="how__desc">Receive a risk classification with supporting observations.</p></div>
   </div>
 </section>
+"""
 
+LOWER_SECTIONS = f"""
 <section class="card" style="margin-top:22px">
   <h2 class="card__title">Severity grades</h2>
   <p class="card__hint">How each classification level is defined and what action it suggests.</p>
@@ -202,7 +205,7 @@ LOWER_SECTIONS = f"""
     <summary class="section-head">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-      <h2 class="card__title">Model performance</h2>
+      <h2>Model performance</h2>
       <svg class="perf__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
     </summary>
@@ -237,11 +240,17 @@ LOWER_SECTIONS = f"""
 # ------------------------------------------------------------------
 load_css()
 st.markdown(HEADER_HERO, unsafe_allow_html=True)
+st.markdown(HOW_IT_WORKS, unsafe_allow_html=True)
 
 with st.container(border=False, key="upload_card"):
     st.markdown('<h2 class="card__title">Upload handwriting sample</h2>'
                 '<p class="card__hint">Upload a clear photo or scan of natural handwriting. '
                 'We clean and normalize the image before analysis.</p>', unsafe_allow_html=True)
+    input_mode = st.radio(
+        "Sample type",
+        ["Dataset sample (white-on-black)", "Phone photo (paper)"],
+        horizontal=True,
+    )
     uploaded = st.file_uploader("Upload handwriting sample",
                                 type=["png", "jpg", "jpeg", "webp"],
                                 label_visibility="collapsed")
@@ -256,12 +265,21 @@ if uploaded is not None:
 
     with st.status("Analyzing sample…", expanded=True) as status:
         st.write("Preprocessing handwriting image")
-        canvas = preprocess_single(gray)
+        prepared = normalize_photo(gray) if input_mode.startswith("Phone photo") else gray
+        canvas = preprocess_single(prepared)
         st.write("Normalizing and preparing sample")
         feat = extract_features(canvas)
         st.write("Running through classification model")
         label_idx, conf = classify(feat)
         status.update(label="Analysis complete", state="complete", expanded=False)
+
+    # ---- DEBUG PREVIEW (remove this block before deploying) ----
+    if DEBUG_PREVIEW:
+        with st.expander("Debug: what the model actually sees", expanded=True):
+            c1, c2 = st.columns(2)
+            c1.image(prepared, caption="Input to preprocess_single (after sample-type handling)", clamp=True)
+            c2.image(canvas, caption=f"Final {canvas.shape[1]}×{canvas.shape[0]} canvas → ResNet-18", clamp=True)
+    # ---- end DEBUG PREVIEW ----
 
     mime = uploaded.type or "image/png"
     data_uri = f"data:{mime};base64,{base64.b64encode(raw).decode()}"
